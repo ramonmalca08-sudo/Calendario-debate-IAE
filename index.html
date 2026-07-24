@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario · Club de Debate del IAE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f1626;
+    --panel:#1a2340;
+    --panel-2:#212c4d;
+    --line: rgba(201,162,75,0.18);
+    --gold:#c9a24b;
+    --gold-bright:#e0bd6d;
+    --cream:#f3ede0;
+    --cream-dim:#c9c2b2;
+    --slate:#7c88a8;
+    --teal:#4a8f80;
+    --teal-dim:rgba(74,143,128,0.16);
+    --gold-dim:rgba(201,162,75,0.14);
+    --radius:14px;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(201,162,75,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(74,143,128,0.10), transparent 55%),
+      var(--ink);
+    color:var(--cream);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+  }
+  ::selection{ background:var(--gold); color:var(--ink); }
+
+  /* ---------- Header ---------- */
+  header.hero{
+    padding:64px 6vw 40px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-size:11.5px;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px; height:1px;
+    background:var(--gold);
+    display:inline-block;
+  }
+  .hero-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(34px, 5.6vw, 64px);
+    line-height:1.02;
+    margin:18px 0 12px;
+    letter-spacing:-0.01em;
+  }
+  h1.title em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--gold-bright);
+  }
+  .hero p.sub{
+    font-size:16px;
+    color:var(--slate);
+    max-width:560px;
+    line-height:1.55;
+    margin:0;
+  }
+  .gavel-rule{
+    margin-top:34px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:var(--cream-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+  }
+  .gavel-rule .line{ flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
+
+  .hero-actions{
+    display:flex;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .pill-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.03em;
+    color:var(--cream-dim);
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--line);
+    padding:10px 16px;
+    border-radius:30px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:.2s ease;
+    white-space:nowrap;
+  }
+  .pill-btn:hover{ border-color:var(--gold); color:var(--gold-bright); }
+  .pill-btn.admin-on{ border-color:var(--teal); color:#8fd0bf; }
+  .pill-btn.pdf{ }
+
+  /* ---------- Year tabs ---------- */
+  nav.years{
+    display:flex;
+    gap:8px;
+    padding:26px 6vw 0;
+    flex-wrap:wrap;
+    border-bottom:1px solid var(--line);
+    margin-bottom:0;
+  }
+  .year-tab{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    letter-spacing:0.04em;
+    color:var(--slate);
+    background:transparent;
+    border:1px solid transparent;
+    border-bottom:none;
+    padding:12px 20px;
+    cursor:pointer;
+    border-radius:10px 10px 0 0;
+    transition:.2s ease;
+    position:relative;
+    top:1px;
+  }
+  .year-tab .dot{
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--slate);
+    margin-right:8px;
+    transition:.2s ease;
+  }
+  .year-tab.has-events .dot{ background:var(--teal); }
+  .year-tab:hover{ color:var(--cream); }
+  .year-tab.active{
+    color:var(--gold-bright);
+    background:var(--panel);
+    border-color:var(--line);
+    border-bottom:1px solid var(--panel);
+  }
+
+  main{
+    padding:44px 6vw 100px;
+    max-width:1400px;
+    margin:0 auto;
+  }
+
+  .year-section{ display:none; }
+  .year-section.active{ display:block; }
+
+  .year-heading{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:30px;
+  }
+  .year-heading h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:28px;
+    margin:0;
+    color:var(--cream);
+  }
+  .year-heading span{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate);
+  }
+
+  /* ---------- Semester columns ---------- */
+  .semesters{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+  }
+  @media (max-width:880px){
+    .semesters{ grid-template-columns:1fr; }
+  }
+  .semester{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px 24px 22px;
+    box-shadow:var(--shadow);
+  }
+  .semester.s2{ --accent: var(--teal); }
+  .semester.s1{ --accent: var(--gold); }
+  .sem-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:22px;
+    padding-bottom:16px;
+    border-bottom:1px dashed var(--line);
+  }
+  .sem-head h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 4px;
+  }
+  .sem-head .range{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--slate);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .sem-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--accent);
+    border:1px solid var(--accent);
+    padding:4px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+
+  /* ---------- Event cards ("credential stub") ---------- */
+  .events-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .event-card{
+    display:flex;
+    align-items:stretch;
+    background:rgba(0,0,0,0.18);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    transition:.2s ease;
+  }
+  .event-card:hover{
+    border-color:var(--accent);
+    transform:translateY(-1px);
+  }
+  .date-block{
+    flex:0 0 64px;
+    background:var(--gold-dim);
+    color:var(--gold-bright);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    border-right:1px dashed var(--line);
+    padding:8px 4px;
+    position:relative;
+  }
+  .semester.s2 .date-block{ background:var(--teal-dim); color:#8fd0bf; }
+  .date-block .day{ font-size:20px; font-weight:600; line-height:1; }
+  .date-block .day.range2{ font-size:15px; }
+  .date-block .mon{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-top:3px;
+    opacity:0.85;
+  }
+  .date-block.tbd{ background:rgba(124,136,168,0.12); color:var(--slate); }
+  .date-block.tbd .day{ font-size:11px; letter-spacing:0.05em; }
+  .event-body{
+    flex:1;
+    padding:12px 16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:2px;
+    min-width:0;
+  }
+  .event-body h4{
+    margin:0;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16.5px;
+    color:var(--cream);
+  }
+  .event-body p{
+    margin:0;
+    font-size:12.5px;
+    color:var(--slate);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .event-actions{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    padding-right:8px;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--slate);
+    cursor:pointer;
+    width:30px; height:30px;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    transition:.15s ease;
+  }
+  .icon-btn:hover{ color:var(--gold-bright); background:rgba(255,255,255,0.06); }
+
+  .subhead{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--slate);
+    margin:22px 0 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .subhead::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .empty-note{
+    font-size:13px;
+    color:var(--slate);
+    font-style:italic;
+    padding:10px 2px;
+  }
+
+  .add-btn{
+    margin-top:20px;
+    width:100%;
+    background:transparent;
+    border:1px dashed var(--accent);
+    color:var(--accent);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.2s ease;
+    letter-spacing:0.01em;
+  }
+  .add-btn:hover{ background:var(--gold-dim); }
+  .semester.s2 .add-btn:hover{ background:var(--teal-dim); }
+
+  .lock-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--slate);
+    text-align:center;
+    padding:12px 4px 2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+
+  /* empty year state */
+  .empty-year-note{
+    text-align:center;
+    padding:0 20px 30px;
+    color:var(--slate);
+  }
+  .empty-year-note .mark{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    color:var(--cream-dim);
+    margin-bottom:8px;
+  }
+  .empty-year-note p{ max-width:420px; margin:0 auto; font-size:14px; line-height:1.6; }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(6,9,18,0.72);
+    backdrop-filter:blur(3px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:30px 30px 26px;
+    width:100%;
+    max-width:420px;
+    box-shadow:var(--shadow);
+  }
+  .modal h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 8px;
+  }
+  .modal .modal-hint{
+    font-size:13px;
+    color:var(--slate);
+    margin:0 0 20px;
+    line-height:1.5;
+  }
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--slate);
+    margin-bottom:7px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--line);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border-radius:8px;
+    outline:none;
+    transition:.15s ease;
+  }
+  .field input:focus, .field textarea:focus{ border-color:var(--gold); }
+  .field-row{ display:flex; gap:12px; }
+  .field-row .field{ flex:1; }
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:18px;
+    font-size:13px;
+    color:var(--cream-dim);
+  }
+  .checkbox-row input{ accent-color:var(--gold); width:16px; height:16px; }
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+  .btn{
+    flex:1;
+    padding:11px;
+    border-radius:9px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    transition:.15s ease;
+  }
+  .btn.primary{ background:var(--gold); color:var(--ink); border-color:var(--gold); }
+  .btn.primary:hover{ background:var(--gold-bright); }
+  .btn.ghost{ background:transparent; color:var(--cream-dim); }
+  .btn.ghost:hover{ border-color:var(--cream-dim); color:var(--cream); }
+  .btn.danger{ background:transparent; border-color:rgba(224,133,133,0.4); color:#e08585; }
+  .btn.danger:hover{ background:rgba(224,133,133,0.1); }
+
+  #passError{
+    font-size:12.5px;
+    color:#e08585;
+    margin:-8px 0 14px;
+    display:none;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  footer{
+    text-align:center;
+    padding:34px 20px 50px;
+    color:var(--slate);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; scroll-behavior:auto !important; }
+  }
+
+  :focus-visible{ outline:2px solid var(--gold-bright); outline-offset:2px; }
+
+  /* ---------- Print / PDF ---------- */
+  @media print{
+    body{ background:#fff !important; color:#1a1a1a; }
+    header.hero .hero-actions, nav.years, .add-btn, .icon-btn, .lock-note, footer{ display:none !important; }
+    header.hero{ border-bottom:2px solid #c9a24b; padding:0 0 20px; }
+    .eyebrow{ color:#8a6d2e; }
+    h1.title{ color:#1a1a1a; }
+    h1.title em{ color:#8a6d2e; }
+    .hero p.sub{ color:#444; }
+    .gavel-rule{ color:#666; }
+    main{ padding:20px 0; max-width:100%; }
+    .year-section{ display:block !important; page-break-before:always; }
+    .year-section:first-child{ page-break-before:auto; }
+    .year-heading h2{ color:#1a1a1a; }
+    .year-heading span{ color:#666; }
+    .semesters{ grid-template-columns:1fr 1fr; gap:16px; }
+    .semester{
+      background:#faf8f2 !important;
+      border:1px solid #ccc;
+      box-shadow:none;
+      break-inside:avoid;
+    }
+    .sem-head{ border-bottom:1px solid #ccc; }
+    .sem-count{ color:#333; border-color:#999; }
+    .event-card{ background:#fff; border:1px solid #ddd; break-inside:avoid; }
+    .date-block{ background:#f0e6cc !important; color:#5c4a1e !important; border-right:1px solid #ddd; }
+    .semester.s2 .date-block{ background:#e0efe9 !important; color:#2c5c4c !important; }
+    .date-block.tbd{ background:#eee !important; color:#777 !important; }
+    .event-body h4{ color:#1a1a1a; }
+    .event-body p{ color:#666; }
+    .empty-note, .empty-year-note{ color:#777; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div>
+      <div class="eyebrow">Instituto de Artes y Estudios / Club de Debate</div>
+      <h1 class="title">Calendario <em>Club de Debate</em> del IAE</h1>
+      <p class="sub">Registro oficial de conferencias, torneos y sesiones — organizado por semestre, año tras año.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="pill-btn" id="adminToggle" onclick="toggleAdmin()">🔒 Modo administrador</button>
+      <button class="pill-btn pdf" onclick="window.print()">⬇ Descargar PDF</button>
+    </div>
+  </div>
+  <div class="gavel-rule"><span>2026 — 2030</span><span class="line"></span><span>Se abre la sesión</span></div>
+</header>
+
+<nav class="years" id="yearNav"></nav>
+
+<main id="main"></main>
+
+<footer>Club de Debate del IAE · Calendario interno</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">Añadir evento</h3>
+    <form id="eventForm">
+      <div class="field">
+        <label for="fName">Nombre del evento</label>
+        <input type="text" id="fName" required placeholder="Ej. MUNDUS">
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="fNoDate">
+        <label for="fNoDate" style="margin:0; text-transform:none; letter-spacing:normal; font-family:'Inter',sans-serif; color:var(--cream-dim);">Fecha aún por definir</label>
+      </div>
+      <div class="field-row" id="dateFields">
+        <div class="field">
+          <label for="fStart">Fecha inicio</label>
+          <input type="date" id="fStart">
+        </div>
+        <div class="field">
+          <label for="fEnd">Fecha fin (opcional)</label>
+          <input type="date" id="fEnd">
+        </div>
+      </div>
+      <div class="field">
+        <label for="fNotes">Notas (opcional)</label>
+        <textarea id="fNotes" rows="2" placeholder="Sede, delegación, detalles..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger" id="deleteBtn" style="display:none;">Eliminar</button>
+        <button type="button" class="btn ghost" id="cancelBtn">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="passOverlay">
+  <div class="modal">
+    <h3>Acceso de administrador</h3>
+    <p class="modal-hint">Ingresa la contraseña para poder añadir, editar o eliminar eventos del calendario.</p>
+    <form id="passForm">
+      <div class="field">
+        <label for="fPass">Contraseña</label>
+        <input type="password" id="fPass" autocomplete="off">
+      </div>
+      <div id="passError">Contraseña incorrecta. Intenta de nuevo.</div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="passCancel">Cancelar</button>
+        <button type="submit" class="btn primary">Entrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Contraseña de administrador.
+   Cámbiala editando el valor de ADMIN_PASSWORD aquí abajo.
+   Nota: al ser un archivo HTML que corre en el navegador, esto
+   es una barrera de uso (evita que cualquiera edite por
+   accidente o casualidad) y no una seguridad a prueba de
+   alguien con conocimientos técnicos que revise el código.
+   ============================================================ */
+const ADMIN_PASSWORD = 'IAE-Debate2026';
+
+const STORAGE_KEY = 'iae-debate-calendar-v1';
+const ADMIN_SESSION_KEY = 'iae-debate-admin-session';
+const YEARS = [2026, 2027, 2028, 2029, 2030];
+const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+const MESES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function uid(){ return 'e' + Math.random().toString(36).slice(2,10); }
+
+function defaultData(){
+  const data = {};
+  YEARS.forEach(y => { data[y] = { s1: [], s2: [] }; });
+
+  data[2026].s1 = [
+    { id: uid(), name:'Metmun', start:'2026-04-09', end:'2026-04-10', noDate:false, notes:'' },
+    { id: uid(), name:'DSC', start:'', end:'', noDate:true, notes:'' },
+    { id: uid(), name:'DALE', start:'', end:'', noDate:true, notes:'' },
+    { id: uid(), name:'BSIMUN', start:'2026-05-18', end:'2026-05-19', noDate:false, notes:'' },
+    { id: uid(), name:'DPT', start:'2026-06-10', end:'2026-06-11', noDate:false, notes:'' },
+    { id: uid(), name:'CFI', start:'', end:'', noDate:true, notes:'' },
+    { id: uid(), name:'PASMUN', start:'2026-07-02', end:'2026-07-03', noDate:false, notes:'' },
+    { id: uid(), name:'MUNDUS', start:'2026-07-30', end:'2026-07-31', noDate:false, notes:'' },
+  ];
+  data[2026].s2 = [
+    { id: uid(), name:'David Robles', start:'2026-08-05', end:'2026-08-06', noDate:false, notes:'' },
+    { id: uid(), name:'NCE', start:'2026-08-06', end:'2026-08-07', noDate:false, notes:'' },
+    { id: uid(), name:'SAPMUN', start:'2026-08-24', end:'2026-08-25', noDate:false, notes:'' },
+    { id: uid(), name:'Moas', start:'2026-08-27', end:'2026-08-28', noDate:false, notes:'' },
+    { id: uid(), name:'Fermi', start:'', end:'', noDate:true, notes:'' },
+    { id: uid(), name:'Sonrisas', start:'', end:'', noDate:true, notes:'' },
+    { id: uid(), name:'Astra', start:'', end:'', noDate:true, notes:'' },
+  ];
+  return data;
+}
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultData();
+    const parsed = JSON.parse(raw);
+    YEARS.forEach(y=>{
+      if(!parsed[y]) parsed[y] = { s1:[], s2:[] };
+      if(!parsed[y].s1) parsed[y].s1 = [];
+      if(!parsed[y].s2) parsed[y].s2 = [];
+    });
+    return parsed;
+  }catch(e){
+    return defaultData();
+  }
+}
+
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); }
+
+const state = {
+  data: loadData(),
+  activeYear: 2026,
+  editing: null,
+  isAdmin: sessionStorage.getItem(ADMIN_SESSION_KEY) === '1'
+};
+
+function fmtRange(ev){
+  if(ev.noDate || !ev.start) return { day:'S/F', mon:'por definir', tbd:true };
+  const s = new Date(ev.start + 'T00:00:00');
+  if(ev.end && ev.end !== ev.start){
+    const e = new Date(ev.end + 'T00:00:00');
+    if(s.getMonth() === e.getMonth()){
+      return { day:`${s.getDate()}–${e.getDate()}`, mon: MESES[s.getMonth()], tbd:false, range:true };
+    }
+    return { day:`${s.getDate()}/${e.getDate()}`, mon: `${MESES[s.getMonth()]}·${MESES[e.getMonth()]}`, tbd:false, range:true };
+  }
+  return { day:String(s.getDate()), mon: MESES[s.getMonth()], tbd:false };
+}
+
+function sortEvents(list){
+  return [...list].sort((a,b)=>{
+    if(a.noDate && b.noDate) return a.name.localeCompare(b.name);
+    if(a.noDate) return 1;
+    if(b.noDate) return -1;
+    return a.start.localeCompare(b.start);
+  });
+}
+
+function humanDate(ev){
+  if(!ev.start) return '';
+  const s = new Date(ev.start + 'T00:00:00');
+  let txt = `${s.getDate()} de ${MESES_LARGO[s.getMonth()]}`;
+  if(ev.end && ev.end !== ev.start){
+    const e = new Date(ev.end + 'T00:00:00');
+    txt += ` – ${e.getDate()} de ${MESES_LARGO[e.getMonth()]}`;
+  }
+  return txt;
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function eventCard(ev, year, sem){
+  const d = fmtRange(ev);
+  const dateHtml = d.tbd
+    ? `<div class="date-block tbd"><span class="day">S/F</span></div>`
+    : `<div class="date-block"><span class="day${d.range ? ' range2':''}">${d.day}</span><span class="mon">${d.mon}</span></div>`;
+  const dateLabel = ev.noDate ? 'Fecha por definir' : humanDate(ev);
+  const editBtn = state.isAdmin
+    ? `<div class="event-actions"><button class="icon-btn" title="Editar" onclick="openModal('${year}','${sem}','${ev.id}')">✎</button></div>`
+    : '';
+  return `
+  <div class="event-card">
+    ${dateHtml}
+    <div class="event-body">
+      <h4>${escapeHtml(ev.name)}</h4>
+      <p>${escapeHtml(ev.notes) || dateLabel}</p>
+    </div>
+    ${editBtn}
+  </div>`;
+}
+
+function semesterBlock(year, semKey, label, range){
+  const list = state.data[year][semKey] || [];
+  const withDate = sortEvents(list.filter(e=>!e.noDate));
+  const noDate = sortEvents(list.filter(e=>e.noDate));
+  const accentClass = semKey === 's1' ? 's1' : 's2';
+
+  let body = '';
+  if(withDate.length === 0 && noDate.length === 0){
+    body += `<p class="empty-note">Todavía no hay eventos registrados.</p>`;
+  } else {
+    if(withDate.length){
+      body += `<div class="events-list">${withDate.map(ev=>eventCard(ev, year, semKey)).join('')}</div>`;
+    }
+    if(noDate.length){
+      body += `<div class="subhead">Por definir</div>`;
+      body += `<div class="events-list">${noDate.map(ev=>eventCard(ev, year, semKey)).join('')}</div>`;
+    }
+  }
+
+  const addOrLock = state.isAdmin
+    ? `<button class="add-btn" onclick="openModal('${year}','${semKey}', null)">+ Añadir evento</button>`
+    : `<div class="lock-note">🔒 Solo el administrador puede editar</div>`;
+
+  return `
+  <div class="semester ${accentClass}">
+    <div class="sem-head">
+      <div>
+        <h3>${label}</h3>
+        <div class="range">${range}</div>
+      </div>
+      <div class="sem-count">${list.length} evento${list.length===1?'':'s'}</div>
+    </div>
+    ${body}
+    ${addOrLock}
+  </div>`;
+}
+
+function yearSectionHtml(year){
+  const total = state.data[year].s1.length + state.data[year].s2.length;
+  let inner = `
+  <div class="year-heading">
+    <h2>Año ${year}</h2>
+    <span>${total} evento${total===1?'':'s'} registrados</span>
+  </div>`;
+
+  if(total === 0){
+    inner += `
+    <div class="empty-year-note">
+      <div class="mark">— aún sin sesiones programadas —</div>
+      <p>El calendario de ${year} está en blanco.${state.isAdmin ? ' Añade el primer evento del primer o segundo semestre para empezar a llenarlo.' : ''}</p>
+    </div>`;
+  }
+
+  inner += `
+  <div class="semesters">
+    ${semesterBlock(year,'s1','Primer semestre','Enero — Julio')}
+    ${semesterBlock(year,'s2','Segundo semestre','Agosto — Diciembre')}
+  </div>`;
+
+  return `<section class="year-section ${year===state.activeYear?'active':''}" data-year="${year}">${inner}</section>`;
+}
+
+function renderYearNav(){
+  const nav = document.getElementById('yearNav');
+  nav.innerHTML = YEARS.map(y=>{
+    const has = (state.data[y].s1.length + state.data[y].s2.length) > 0;
+    return `<button class="year-tab ${y===state.activeYear?'active':''} ${has?'has-events':''}" onclick="setYear(${y})"><span class="dot"></span>${y}</button>`;
+  }).join('');
+}
+
+function renderMain(){
+  document.getElementById('main').innerHTML = YEARS.map(y=>yearSectionHtml(y)).join('');
+}
+
+function setYear(y){
+  state.activeYear = y;
+  document.querySelectorAll('.year-section').forEach(sec=>{
+    sec.classList.toggle('active', sec.dataset.year == y);
+  });
+  renderYearNav();
+}
+
+function render(){
+  renderYearNav();
+  renderMain();
+}
+
+/* ---------- Admin lock ---------- */
+const adminToggle = document.getElementById('adminToggle');
+const passOverlay = document.getElementById('passOverlay');
+const passForm = document.getElementById('passForm');
+const passError = document.getElementById('passError');
+
+function updateAdminButton(){
+  adminToggle.textContent = state.isAdmin ? '🔓 Administrador activo' : '🔒 Modo administrador';
+  adminToggle.classList.toggle('admin-on', state.isAdmin);
+}
+
+function toggleAdmin(){
+  if(state.isAdmin){
+    state.isAdmin = false;
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    updateAdminButton();
+    render();
+  } else {
+    document.getElementById('fPass').value = '';
+    passError.style.display = 'none';
+    passOverlay.classList.add('open');
+    document.getElementById('fPass').focus();
+  }
+}
+
+document.getElementById('passCancel').addEventListener('click', ()=> passOverlay.classList.remove('open'));
+passOverlay.addEventListener('click', (e)=>{ if(e.target === passOverlay) passOverlay.classList.remove('open'); });
+
+passForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const val = document.getElementById('fPass').value;
+  if(val === ADMIN_PASSWORD){
+    state.isAdmin = true;
+    sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+    passOverlay.classList.remove('open');
+    updateAdminButton();
+    render();
+  } else {
+    passError.style.display = 'block';
+  }
+});
+
+/* ---------- Event modal ---------- */
+const overlay = document.getElementById('overlay');
+const form = document.getElementById('eventForm');
+const fNoDate = document.getElementById('fNoDate');
+const dateFields = document.getElementById('dateFields');
+const deleteBtn = document.getElementById('deleteBtn');
+
+fNoDate.addEventListener('change', ()=>{
+  dateFields.style.display = fNoDate.checked ? 'none' : 'flex';
+});
+
+function openModal(year, sem, id){
+  if(!state.isAdmin) return;
+  state.editing = { year, sem, id };
+  const titleEl = document.getElementById('modalTitle');
+  form.reset();
+  dateFields.style.display = 'flex';
+  deleteBtn.style.display = 'none';
+
+  if(id){
+    const ev = state.data[year][sem].find(e=>e.id===id);
+    titleEl.textContent = 'Editar evento';
+    document.getElementById('fName').value = ev.name;
+    document.getElementById('fStart').value = ev.start || '';
+    document.getElementById('fEnd').value = ev.end || '';
+    document.getElementById('fNotes').value = ev.notes || '';
+    fNoDate.checked = !!ev.noDate;
+    dateFields.style.display = ev.noDate ? 'none' : 'flex';
+    deleteBtn.style.display = 'block';
+  } else {
+    titleEl.textContent = 'Añadir evento';
+  }
+  overlay.classList.add('open');
+  document.getElementById('fName').focus();
+}
+
+function closeModal(){
+  overlay.classList.remove('open');
+  state.editing = null;
+}
+
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    if(overlay.classList.contains('open')) closeModal();
+    if(passOverlay.classList.contains('open')) passOverlay.classList.remove('open');
+  }
+});
+
+deleteBtn.addEventListener('click', ()=>{
+  if(!state.isAdmin) return;
+  const { year, sem, id } = state.editing;
+  state.data[year][sem] = state.data[year][sem].filter(e=>e.id!==id);
+  saveData();
+  closeModal();
+  render();
+});
+
+form.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  if(!state.isAdmin) return;
+  const { year, sem, id } = state.editing;
+  const name = document.getElementById('fName').value.trim();
+  const noDate = fNoDate.checked;
+  const start = noDate ? '' : document.getElementById('fStart').value;
+  const end = noDate ? '' : document.getElementById('fEnd').value;
+  const notes = document.getElementById('fNotes').value.trim();
+
+  if(!name){ return; }
+
+  if(id){
+    const ev = state.data[year][sem].find(e=>e.id===id);
+    ev.name = name; ev.noDate = noDate; ev.start = start; ev.end = end; ev.notes = notes;
+  } else {
+    state.data[year][sem].push({ id: uid(), name, start, end, noDate: noDate || !start, notes });
+  }
+  saveData();
+  closeModal();
+  render();
+});
+
+updateAdminButton();
+render();
+</script>
+</body>
+</html>
